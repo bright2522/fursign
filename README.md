@@ -25,8 +25,8 @@ pnpm test
 ## Main flow
 
 1. Open the Thai landing page and choose **เริ่มออกแบบห้อง**.
-2. Enter room dimensions, budget, style, and a door width, or import versioned Room JSON.
-3. Add furniture in the Editor. Drag objects, orbit/pan/zoom the room, rotate with Q/E or the touch controls, and inspect collision/door warnings.
+2. Enter room dimensions, budget, style, door position, and an optional window, or import versioned Room JSON.
+3. Add furniture in the WebGL Editor. Drag FBX objects directly under the pointer, orbit/pan/zoom the room, rotate by 15° or 90°, and inspect collision/door warnings.
 4. Save the project locally and open **สร้างสเปกสินค้า**.
 5. Select the positions that represent products to buy and review maximum measured dimensions.
 6. Open recommendations. Category, dimensions, stock, and optional budget are hard filters; sponsored status is only a small boost after fit.

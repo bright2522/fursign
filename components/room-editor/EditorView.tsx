@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Brand } from "@/components/layout/Brand";
 import { furnitureAssets } from "@/data/catalog";
 import { createId, normalizeRotation } from "@/lib/engine.mjs";
@@ -104,7 +104,7 @@ export function EditorView() {
           <div className="panel-title"><div><span>LIBRARY</span><h2>เฟอร์นิเจอร์</h2></div><button className="mobile-close" onClick={() => setMobilePanel(null)}>×</button></div>
           <label className="library-search"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ค้นหาเฟอร์นิเจอร์" /></label>
           <div className="category-tabs">{categories.map(([id, label]) => <button key={id} className={category === id ? "active" : ""} onClick={() => setCategory(id)}>{label}</button>)}</div>
-          <div className="asset-grid">{visibleAssets.map((asset) => <button key={asset.id} className="asset-card" onClick={() => addAsset(asset)}><span style={{ background: asset.color }}><i>{asset.thumbnail}</i><b>＋</b></span><strong>{asset.name}</strong><small>{Math.round(asset.width * 100)} × {Math.round(asset.depth * 100)} ซม.</small></button>)}</div>
+          <div className="asset-grid">{visibleAssets.map((asset) => <button key={asset.id} className="asset-card" onClick={() => addAsset(asset)}><span style={{ "--asset": asset.color } as CSSProperties}><i>{asset.thumbnail}</i><b>＋</b><em>3D</em></span><strong>{asset.name}</strong><small>{Math.round(asset.width * 100)} × {Math.round(asset.depth * 100)} ซม.</small></button>)}</div>
           {!visibleAssets.length && <div className="panel-empty">ไม่พบเฟอร์นิเจอร์ที่ค้นหา</div>}
         </aside>
 
@@ -119,7 +119,7 @@ export function EditorView() {
           {selected && selectedAsset ? <>
             <div className="selected-preview"><span style={{ background: selectedAsset.color }}>{selectedAsset.thumbnail}</span><div><b>{selectedAsset.name}</b><small>{selectedAsset.category.toUpperCase()}</small></div></div>
             <section className="property-section"><h3>ตำแหน่ง <small>เมตร</small></h3><div className="axis-inputs"><label><span className="x-axis">X</span><input type="number" step="0.05" value={selected.x} onChange={(event) => move(selected.id, Number(event.target.value), selected.z)} /></label><label><span className="z-axis">Z</span><input type="number" step="0.05" value={selected.z} onChange={(event) => move(selected.id, selected.x, Number(event.target.value))} /></label></div></section>
-            <section className="property-section"><h3>การหมุน <small>Q / E</small></h3><div className="rotation-control"><button onClick={() => rotate(-15)}>↶</button><output>{selected.rotation}°</output><button onClick={() => rotate(15)}>↷</button></div><button className="rotate-90" onClick={() => rotate(90)}>หมุนเร็ว 90°</button><label className="toggle-row"><span>Snap ครั้งละ 15°</span><input type="checkbox" checked={snapRotation} onChange={(event) => setSnapRotation(event.target.checked)} /></label></section>
+            <section className="property-section"><h3>การหมุน <small>Q / E</small></h3><div className="rotation-control"><button onClick={() => rotate(-15)} aria-label="หมุนซ้าย 15 องศา">↶ 15°</button><output>{selected.rotation}°</output><button onClick={() => rotate(15)} aria-label="หมุนขวา 15 องศา">15° ↷</button></div><div className="rotation-quick"><button onClick={() => rotate(-90)}>↶ ซ้าย 90°</button><button className="rotate-right-angle" onClick={() => rotate(90)}>ขวา 90° ↷</button></div><label className="toggle-row"><span>Snap ครั้งละ 15°</span><input type="checkbox" checked={snapRotation} onChange={(event) => setSnapRotation(event.target.checked)} /></label></section>
             <section className="property-section"><h3>ขนาดจริง</h3><div className="measure-grid"><span><small>กว้าง</small><b>{selectedAsset.width} ม.</b></span><span><small>ลึก</small><b>{selectedAsset.depth} ม.</b></span><span><small>สูง</small><b>{selectedAsset.height} ม.</b></span></div></section>
             {warnings.filter((item) => item.placementId === selected.id).map((warning) => <div className={`object-warning ${warning.severity}`} key={warning.id}>⚠ <span>{warning.message}</span></div>)}
             <label className="toggle-row"><span>Snap ชิดผนัง</span><input type="checkbox" checked={snapWall} onChange={(event) => setSnapWall(event.target.checked)} /></label>
@@ -134,7 +134,7 @@ export function EditorView() {
         </aside>
       </div>
 
-      <nav className="mobile-editor-toolbar"><button onClick={() => setMobilePanel("library")}><span>＋</span>เพิ่มของ</button><button onClick={() => rotate(-15)}><span>↶</span>หมุนซ้าย</button><button onClick={() => rotate(15)}><span>↷</span>หมุนขวา</button><button onClick={() => setMobilePanel("properties")}><span>☷</span>รายละเอียด</button></nav>
+      <nav className="mobile-editor-toolbar"><button onClick={() => setMobilePanel("library")}><span>＋</span>เพิ่มของ</button><button onClick={() => rotate(-90)}><span>↶</span>ซ้าย 90°</button><button onClick={() => rotate(90)}><span>↷</span>ขวา 90°</button><button onClick={() => setMobilePanel("properties")}><span>☷</span>รายละเอียด</button></nav>
       {mobilePanel && <button className="sheet-backdrop" onClick={() => setMobilePanel(null)} aria-label="ปิดแผง" />}
       <AssistantPanel />
     </div>

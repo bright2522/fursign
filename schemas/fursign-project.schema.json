@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fursign.example/schema/project-v1.json",
+  "title": "Fursign Project v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "name", "roomType", "unit", "budget", "style", "colorPreference", "room", "placements", "walkwayClearance", "createdAt", "updatedAt"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "roomType": { "type": "string", "minLength": 1 },
+    "unit": { "const": "meter" },
+    "budget": { "type": "number", "minimum": 0 },
+    "style": { "type": "string" },
+    "colorPreference": { "type": "string" },
+    "walkwayClearance": { "type": "number", "minimum": 0.3, "maximum": 2 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "room": { "$ref": "#/$defs/room" },
+    "placements": { "type": "array", "items": { "$ref": "#/$defs/placement" } }
+  },
+  "$defs": {
+    "wallSide": { "enum": ["north", "east", "south", "west"] },
+    "room": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "length", "height", "doors", "windows"],
+      "properties": {
+        "width": { "type": "number", "minimum": 1.5, "maximum": 20 },
+        "length": { "type": "number", "minimum": 1.5, "maximum": 20 },
+        "height": { "type": "number", "minimum": 2, "maximum": 6 },
+        "doors": { "type": "array", "items": { "$ref": "#/$defs/door" } },
+        "windows": { "type": "array", "items": { "$ref": "#/$defs/window" } }
+      }
+    },
+    "door": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "wall", "offset", "width", "height", "swing"],
+      "properties": {
+        "id": { "type": "string" }, "wall": { "$ref": "#/$defs/wallSide" },
+        "offset": { "type": "number", "minimum": 0 }, "width": { "type": "number", "minimum": 0.6 },
+        "height": { "type": "number", "minimum": 1.5 }, "swing": { "enum": ["left", "right"] }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "wall", "offset", "width", "height", "sillHeight"],
+      "properties": {
+        "id": { "type": "string" }, "wall": { "$ref": "#/$defs/wallSide" },
+        "offset": { "type": "number", "minimum": 0 }, "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 }, "sillHeight": { "type": "number", "minimum": 0 }
+      }
+    },
+    "placement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "assetId", "x", "z", "rotation", "locked"],
+      "properties": {
+        "id": { "type": "string" }, "assetId": { "type": "string" },
+        "x": { "type": "number" }, "z": { "type": "number" },
+        "rotation": { "type": "number" }, "locked": { "type": "boolean" }
+      }
+    }
+  }
+}

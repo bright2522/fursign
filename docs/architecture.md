@@ -4,7 +4,7 @@
 
 The UI is a vinext/React application deployed as a Cloudflare-compatible Worker. The prototype deliberately uses browser storage because the product brief requires it to work without credentials. Persistence is isolated behind versioned serialization functions so it can be replaced with a remote repository later.
 
-The editor renders a lightweight CSS perspective scene rather than downloading large textured models. Furniture positions are still stored in room coordinates measured in meters. Visual transforms never mutate the room coordinate system.
+The editor renders a Three.js/WebGL scene with real floor geometry, upright cutaway walls, door/window panels, and 24 lightweight FBX furniture models supplied with the project. Furniture positions are stored in room coordinates measured in meters. Raycasting maps pointer movement directly onto the floor plane, while visual transforms never mutate the room coordinate system.
 
 ## Deterministic geometry
 
@@ -46,7 +46,7 @@ Keep UI callers dependent on project operations rather than storage APIs. A host
 ## Performance choices
 
 - No Three.js payload is loaded on the landing page or editor.
-- Generic furniture uses shared CSS materials and no large textures.
+- The initial library uses 24 compact low-poly FBX files (under 1 MB combined) and caches each source model in memory.
 - Camera motion changes a single world transform.
 - Geometry runs only when project placements or settings change.
 - The mock catalog is small and local.

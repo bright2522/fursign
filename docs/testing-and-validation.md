@@ -10,15 +10,16 @@ Run `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build`, and `pnpm test`. Unit c
 2. Create a 4 × 5 × 2.6 m room with a 30,000 THB budget.
 3. Add a sofa and table; orbit, zoom, pan, and switch Top/Preview views.
 4. Drag the table onto the sofa and confirm the red outline and collision message.
-5. Move it away, drag another object into the door zone, and confirm the door warning.
-6. Rotate with Q/E, 90° control, and the mobile rotation controls; test duplicate, lock, delete, undo, and redo.
-7. Save and confirm the warning badge/status.
-8. Generate the specification and verify dimensions reflect the room/placement.
-9. Open recommendations; confirm every visible product fits the active maximum dimensions. Toggle the budget filter.
-10. Confirm sponsored labels are visible and no oversized sponsored product appears.
-11. Favorite and compare products, then open a merchant URL and verify an outbound click is stored.
-12. Reload, open Projects, and reopen the saved project.
-13. Repeat visual/touch checks at 1280×720, 768×1024, and 390×844. Ensure no canvas overflow, side panels become bottom sheets, major controls remain above the browser bar, and no primary action requires hover.
+5. Confirm the FBX object stays under the pointer while dragging; move it away, drag another object into the door zone, and confirm the door warning.
+6. Use the right-panel 90° controls and confirm the selected model turns exactly a quarter turn without changing position.
+7. Rotate with Q/E and the mobile rotation controls; test duplicate, lock, delete, undo, and redo.
+8. Save and confirm the warning badge/status.
+9. Generate the specification and verify dimensions reflect the room/placement.
+10. Open recommendations; confirm every visible product fits the active maximum dimensions. Toggle the budget filter.
+11. Confirm sponsored labels are visible and no oversized sponsored product appears.
+12. Favorite and compare products, then open a merchant URL and verify an outbound click is stored.
+13. Reload, open Projects, and reopen the saved project.
+14. Repeat visual/touch checks at 1280×720, 768×1024, and 390×844. Ensure no canvas overflow, side panels become bottom sheets, major controls remain above the browser bar, and no primary action requires hover.
 
 ## Prototype validation checklist
 

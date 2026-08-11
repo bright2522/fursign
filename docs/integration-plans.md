@@ -31,11 +31,11 @@ Required CSV columns are `product_id, merchant_id, name, category, width_m, dept
 
 ## Known limitations
 
-- The editor is a lightweight CSS perspective prototype, not a WebGL/Three.js modeler. It provides the required camera and placement interactions but no photorealistic models, shadows, wall cut-outs, or walk-mode collision.
+- The editor is now a WebGL/Three.js low-poly modeler with shadows and cutaway walls. It is intentionally not photorealistic and walk mode does not yet include first-person collision.
 - Rotated collision uses an axis-aligned footprint; it is conservative for diagonal objects.
 - Door clearance is represented as a rectangular sweep envelope, not an exact arc polygon.
 - Walkway warnings are proximity recommendations chosen by the user, not legal or accessibility compliance claims.
-- The current room setup creates one north-wall door. Multiple door/window editing is represented in the data contract and import path, but not in the setup UI.
+- Room setup supports one configurable door and one optional window on any wall. Multiple openings are supported by the data contract and JSON import, but not yet by the setup form.
 - Projects are device-local and have no account sync, collaboration, server backup, or conflict resolution.
 - Product, merchant, stock, price, image, and sponsored data are mock data. URLs point to an example domain.
 - The comparison action prepares a selection but does not yet render a full comparison table.

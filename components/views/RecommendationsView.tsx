@@ -15,8 +15,9 @@ export function RecommendationsView() {
   const [sort, setSort] = useState<"fit" | "price">("fit");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [compare, setCompare] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
   const active = requirements.find((item) => item.placementId === activeId) ?? requirements[0];
-  const results = useMemo(() => active ? recommendProducts(active, products, budgetConstraint) : [], [active, budgetConstraint]);
+  const results = useMemo<Recommendation[]>(() => active ? recommendProducts(active, products, budgetConstraint) : [], [active, budgetConstraint]);
   const sorted = sort === "price" ? [...results].sort((a, b) => a.product.price - b.product.price) : results;
 
   const outbound = (productId: string) => {
@@ -25,7 +26,7 @@ export function RecommendationsView() {
     const stored = JSON.parse(window.localStorage.getItem("fursign.clicks.v1") || "[]") as AffiliateClick[];
     window.localStorage.setItem("fursign.clicks.v1", JSON.stringify([...stored, click]));
     notify("บันทึก Outbound Click แล้ว");
-    window.open(product.productUrl, "_blank", "noopener,noreferrer");
+    window.open(`/out?url=${encodeURIComponent(product.productUrl)}&click_id=${encodeURIComponent(click.clickId)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -37,7 +38,8 @@ export function RecommendationsView() {
         <div className="product-image"><span>{product.image}</span>{product.sponsored && <b className="sponsored">สนับสนุน</b>}<button className={favorites.includes(product.id) ? "favorite active" : "favorite"} onClick={() => setFavorites((current) => current.includes(product.id) ? current.filter((id) => id !== product.id) : [...current, product.id])}>♡</button><i>{String(index + 1).padStart(2, "0")}</i></div>
         <div className="product-content"><div className="fit-row"><b>{fitScore}% FIT</b><span>มีสินค้า</span></div><h2>{product.name}</h2><p className="merchant-name">ร้านตัวอย่าง {product.merchantId.slice(-1)}</p><div className="product-dimensions">{Math.round(product.width * 100)} × {Math.round(product.depth * 100)} × {Math.round(product.height * 100)} ซม.</div><ul>{reasons.slice(0, 2).map((reason: string) => <li key={reason}>✓ {reason}</li>)}</ul><div className="product-footer"><b>฿{product.price.toLocaleString("th-TH")}</b><button onClick={() => outbound(product.id)}>ไปหน้าร้าน ↗</button></div><label className="compare-check"><input type="checkbox" checked={compare.includes(product.id)} disabled={!compare.includes(product.id) && compare.length >= 3} onChange={() => setCompare((current) => current.includes(product.id) ? current.filter((id) => id !== product.id) : [...current, product.id])} /> เปรียบเทียบ</label></div>
       </article>)}</section> : <div className="recommend-empty"><span>⌕</span><h2>ยังไม่พบสินค้าที่พอดี</h2><p>ลองปิดเงื่อนไขงบประมาณ หรือกลับไปปรับพื้นที่ในห้อง</p><button className="button button-primary" onClick={() => setBudgetConstraint(false)}>แสดงสินค้านอกงบ</button></div>}
-      {compare.length > 0 && <div className="compare-dock"><span>เลือกเปรียบเทียบ <b>{compare.length}/3</b></span>{compare.map((id) => <i key={id}>{products.find((item) => item.id === id)?.image}</i>)}<button onClick={() => notify("Prototype เตรียมข้อมูลเปรียบเทียบแล้ว")}>เปรียบเทียบสินค้า →</button></div>}
+      {compare.length > 0 && <div className="compare-dock"><span>เลือกเปรียบเทียบ <b>{compare.length}/3</b></span>{compare.map((id) => <i key={id}>{products.find((item) => item.id === id)?.image}</i>)}<button disabled={compare.length < 2} onClick={() => setCompareOpen(true)}>เปรียบเทียบสินค้า →</button></div>}
+      {compareOpen && <div className="comparison-backdrop" role="presentation"><section className="comparison-modal" role="dialog" aria-modal="true" aria-label="เปรียบเทียบสินค้า"><header><div><span>PRODUCT COMPARE</span><h2>เปรียบเทียบก่อนเลือก</h2></div><button onClick={() => setCompareOpen(false)} aria-label="ปิดตารางเปรียบเทียบ">×</button></header><div className="comparison-grid">{compare.map((id) => { const item = products.find((product) => product.id === id)!; const result = results.find((entry) => entry.product.id === id); return <article key={id}><div className="compare-image">{item.image}</div><h3>{item.name}</h3><p>ร้านตัวอย่าง {item.merchantId.slice(-1)}</p><dl><div><dt>Fit Score</dt><dd>{result?.fitScore ?? "—"}%</dd></div><div><dt>ขนาด</dt><dd>{Math.round(item.width * 100)} × {Math.round(item.depth * 100)} × {Math.round(item.height * 100)} ซม.</dd></div><div><dt>ราคา</dt><dd>฿{item.price.toLocaleString("th-TH")}</dd></div><div><dt>สไตล์</dt><dd>{item.styleTags.join(", ")}</dd></div><div><dt>Sponsored</dt><dd>{item.sponsored ? "ใช่ · ผ่าน Fit แล้ว" : "ไม่"}</dd></div></dl><button onClick={() => outbound(item.id)}>ไปหน้าร้าน ↗</button></article>; })}</div></section></div>}
       <p className="affiliate-note">การกดออกไปหน้าร้านเป็นเพียง Outbound Click ไม่ใช่หลักฐานว่าซื้อสำเร็จ · ข้อมูลสินค้าเป็น Mock Dataset สำหรับทดสอบ</p>
     </div>
   );

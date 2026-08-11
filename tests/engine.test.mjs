@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readdir } from "node:fs/promises";
 import test from "node:test";
 import { boxesOverlap, calculateWarnings, doorSweepBox, generateRequirement, isOutsideRoom, metersToCentimeters, placementBox, recommendProducts } from "../lib/engine.mjs";
 import { parseProjects, serializeProjects } from "../lib/storage.mjs";
@@ -8,6 +9,10 @@ const room = { width: 4, length: 5, height: 2.6, doors: [{ id: "door", wall: "no
 const baseProject = { schemaVersion: 1, id: "p", name: "Test", roomType: "living", unit: "meter", budget: 10000, style: "Minimal", colorPreference: "Beige", room, placements: [], walkwayClearance: .65, createdAt: "", updatedAt: "" };
 
 test("converts units deterministically", () => assert.equal(metersToCentimeters(1.905), 191));
+test("ships the curated low-poly FBX library", async () => {
+  const models = (await readdir(new URL("../public/models/low-poly-furniture/", import.meta.url))).filter((name) => name.endsWith(".fbx"));
+  assert.equal(models.length, 24);
+});
 test("detects overlapping bounding boxes", () => assert.equal(boxesOverlap({ minX: 0, maxX: 1, minZ: 0, maxZ: 1 }, { minX: .8, maxX: 1.8, minZ: .2, maxZ: 1.2 }), true));
 test("detects furniture outside the room", () => assert.equal(isOutsideRoom({ minX: -.1, maxX: 1, minZ: 0, maxZ: 1 }, room), true));
 test("creates a door sweep and detects obstruction", () => {
