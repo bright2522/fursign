@@ -15,7 +15,7 @@ test("server-renders the finished Fursign entry page", async () => {
   const html = await response.text();
   assert.match(html, /Fursign/);
   assert.match(html, /ออกแบบห้อง/);
-  assert.match(html, /เริ่มออกแบบห้อง/);
+  assert.match(html, /ออกแบบเลย/);
   assert.doesNotMatch(html, /codex-preview|Building your site|Your site is taking shape/);
 });
 

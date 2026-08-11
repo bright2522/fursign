@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent } from "react";
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent, type WheelEvent } from "react";
 import * as THREE from "three";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
 import { furnitureAssets } from "@/data/catalog";
@@ -101,15 +101,25 @@ function makeOpeningPanel(opening: Door | WindowOpening, width: number, length: 
 function makeDoorSweep(door: Door, width: number, length: number) {
   const point = wallPoint(door.wall, door.offset, width, length);
   const geometry = new THREE.CircleGeometry(door.width, 32, 0, Math.PI / 2);
-  const material = new THREE.MeshBasicMaterial({ color: 0xd08a32, transparent: true, opacity: 0.24, side: THREE.DoubleSide, depthWrite: false });
+  const material = new THREE.MeshBasicMaterial({ color: 0xe05245, transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false });
   const sweep = new THREE.Mesh(geometry, material);
-  sweep.rotation.x = -Math.PI / 2;
-  sweep.rotation.z = point.rotation + (door.swing === "left" ? Math.PI / 2 : 0);
-  sweep.position.set(point.x, 0.012, point.z);
-  return sweep;
+  const outlinePoints = [new THREE.Vector3(0, 0, .003)];
+  for (let step = 0; step <= 24; step += 1) {
+    const angle = (step / 24) * (Math.PI / 2);
+    outlinePoints.push(new THREE.Vector3(Math.cos(angle) * door.width, Math.sin(angle) * door.width, .003));
+  }
+  outlinePoints.push(new THREE.Vector3(0, 0, .003));
+  const outline = new THREE.Line(new THREE.BufferGeometry().setFromPoints(outlinePoints), new THREE.LineBasicMaterial({ color: 0xc93f35, transparent: true, opacity: .95 }));
+  const zone = new THREE.Group();
+  zone.add(sweep, outline);
+  zone.rotation.x = -Math.PI / 2;
+  zone.rotation.z = point.rotation + (door.swing === "left" ? Math.PI / 2 : 0);
+  zone.position.set(point.x, 0.014, point.z);
+  zone.userData.kind = "door-danger-zone";
+  return zone;
 }
 
-export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState; setCamera: (value: CameraState) => void; onMove: (id: string, x: number, z: number) => void }) {
+export function RoomCanvas({ camera, setCamera, onMove, gridSize, wallsVisible }: { camera: CameraState; setCamera: (value: CameraState) => void; onMove: (id: string, x: number, z: number) => void; gridSize: number; wallsVisible: boolean }) {
   const { project, selectedId, select, warnings } = useFursign();
   const stageRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<SceneState | null>(null);
@@ -117,7 +127,7 @@ export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState;
   const cameraRef = useRef(camera);
   const projectRef = useRef(project);
   const onMoveRef = useRef(onMove);
-  const [modelsLoading, setModelsLoading] = useState(0);
+  const selectedDoorConflict = warnings.some((warning) => warning.placementId === selectedId && warning.type === "door");
 
   useEffect(() => {
     cameraRef.current = camera;
@@ -194,26 +204,31 @@ export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState;
     state.floor.geometry.dispose();
     state.floor.geometry = new THREE.PlaneGeometry(width, length);
 
-    const gridMaterial = new THREE.LineBasicMaterial({ color: 0x92765d, transparent: true, opacity: 0.28 });
-    const points: THREE.Vector3[] = [];
-    for (let x = -width / 2; x <= width / 2 + 0.001; x += 0.5) points.push(new THREE.Vector3(x, 0.006, -length / 2), new THREE.Vector3(x, 0.006, length / 2));
-    for (let z = -length / 2; z <= length / 2 + 0.001; z += 0.5) points.push(new THREE.Vector3(-width / 2, 0.006, z), new THREE.Vector3(width / 2, 0.006, z));
-    const gridGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    state.roomGroup.add(new THREE.LineSegments(gridGeometry, gridMaterial));
+    if (gridSize > 0) {
+      const gridMaterial = new THREE.LineBasicMaterial({ color: 0x8d7157, transparent: true, opacity: gridSize === .25 ? .2 : .28 });
+      const points: THREE.Vector3[] = [];
+      for (let x = -width / 2; x <= width / 2 + 0.001; x += gridSize) points.push(new THREE.Vector3(x, 0.006, -length / 2), new THREE.Vector3(x, 0.006, length / 2));
+      for (let z = -length / 2; z <= length / 2 + 0.001; z += gridSize) points.push(new THREE.Vector3(-width / 2, 0.006, z), new THREE.Vector3(width / 2, 0.006, z));
+      const gridGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      state.roomGroup.add(new THREE.LineSegments(gridGeometry, gridMaterial));
+    }
 
-    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xf0ede5, roughness: 0.88, side: THREE.DoubleSide });
-    const north = new THREE.Mesh(new THREE.BoxGeometry(width + 0.1, height, 0.09), wallMaterial.clone());
-    north.position.set(0, height / 2, -length / 2);
-    const west = new THREE.Mesh(new THREE.BoxGeometry(0.09, height, length + 0.1), wallMaterial.clone());
-    west.position.set(-width / 2, height / 2, 0);
-    const southEdge = new THREE.Mesh(new THREE.BoxGeometry(width + 0.1, 0.14, 0.09), wallMaterial.clone());
-    southEdge.position.set(0, 0.07, length / 2);
-    const eastEdge = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.14, length + 0.1), wallMaterial.clone());
-    eastEdge.position.set(width / 2, 0.07, 0);
-    [north, west, southEdge, eastEdge].forEach((wall) => { wall.receiveShadow = true; state.roomGroup.add(wall); });
-    doors.forEach((door) => { state.roomGroup.add(makeOpeningPanel(door, width, length, "door"), makeDoorSweep(door, width, length)); });
-    windows.forEach((windowOpening) => state.roomGroup.add(makeOpeningPanel(windowOpening, width, length, "window")));
-  }, [project.room]);
+    if (wallsVisible) {
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xf0ede5, roughness: 0.88, side: THREE.DoubleSide });
+      const north = new THREE.Mesh(new THREE.BoxGeometry(width + 0.1, height, 0.09), wallMaterial.clone());
+      north.position.set(0, height / 2, -length / 2);
+      const west = new THREE.Mesh(new THREE.BoxGeometry(0.09, height, length + 0.1), wallMaterial.clone());
+      west.position.set(-width / 2, height / 2, 0);
+      const southEdge = new THREE.Mesh(new THREE.BoxGeometry(width + 0.1, 0.14, 0.09), wallMaterial.clone());
+      southEdge.position.set(0, 0.07, length / 2);
+      const eastEdge = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.14, length + 0.1), wallMaterial.clone());
+      eastEdge.position.set(width / 2, 0.07, 0);
+      [north, west, southEdge, eastEdge].forEach((wall) => { wall.receiveShadow = true; state.roomGroup.add(wall); });
+      doors.forEach((door) => state.roomGroup.add(makeOpeningPanel(door, width, length, "door")));
+      windows.forEach((windowOpening) => state.roomGroup.add(makeOpeningPanel(windowOpening, width, length, "window")));
+    }
+    doors.forEach((door) => state.roomGroup.add(makeDoorSweep(door, width, length)));
+  }, [gridSize, project.room, wallsVisible]);
 
   useEffect(() => {
     const state = sceneRef.current;
@@ -243,7 +258,6 @@ export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState;
         state.furnitureGroup.add(group);
         state.objectGroups.set(placement.id, group);
         if (asset.modelUrl) {
-          setModelsLoading((value) => value + 1);
           const targetGroup = group;
           loadModel(asset.modelUrl).then((source) => {
             if (sceneRef.current?.objectGroups.get(placement.id) !== targetGroup) return;
@@ -255,7 +269,7 @@ export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState;
           }).catch(() => {
             const material = (targetGroup.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial;
             material.opacity = 0.5;
-          }).finally(() => setModelsLoading((value) => Math.max(0, value - 1)));
+          });
         }
       }
       if (dragRef.current?.kind !== "object" || dragRef.current.id !== placement.id) {
@@ -272,7 +286,8 @@ export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState;
     if (state.selection) { state.scene.remove(state.selection); state.selection.dispose(); state.selection = null; }
     const group = selectedId ? state.objectGroups.get(selectedId) : null;
     if (group) {
-      state.selection = new THREE.BoxHelper(group, 0xd96545);
+      const selectedConflict = warnings.some((warning) => warning.placementId === selectedId && (warning.severity === "error" || warning.type === "door"));
+      state.selection = new THREE.BoxHelper(group, selectedConflict ? 0xd83e35 : 0xd96545);
       state.selection.material.depthTest = false;
       state.selection.renderOrder = 10;
       state.scene.add(state.selection);
@@ -281,9 +296,9 @@ export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState;
       const hit = objectGroup.children[0] as THREE.Mesh;
       const material = hit?.material as THREE.MeshBasicMaterial | undefined;
       if (!material) return;
-      const hasError = warnings.some((warning) => warning.placementId === id && warning.severity === "error");
-      material.color.set(hasError ? 0xc94d3d : 0xffffff);
-      material.opacity = hasError ? 0.22 : 0;
+      const conflict = warnings.some((warning) => warning.placementId === id && (warning.severity === "error" || warning.type === "door"));
+      material.color.set(conflict ? 0xd83e35 : 0xffffff);
+      material.opacity = conflict ? 0.3 : 0;
     });
   }, [selectedId, warnings]);
 
@@ -397,9 +412,8 @@ export function RoomCanvas({ camera, setCamera, onMove }: { camera: CameraState;
     <div className="room-canvas three-room-stage" ref={stageRef} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerUp} onWheel={zoom} onContextMenu={(event) => event.preventDefault()}>
       <div className="canvas-hint"><span>ลากเฟอร์นิเจอร์ให้ตามเมาส์</span><span>ลากพื้นเพื่อหมุนห้อง</span><span>⇧ + ลาก เพื่อเลื่อน</span><span>Scroll เพื่อซูม</span></div>
       <div className="north-mark">N</div>
-      <div className="model-status"><i /> {modelsLoading ? `กำลังโหลด ${modelsLoading} โมเดล` : "24 FBX · READY"}</div>
+      {selectedDoorConflict && <div className="door-conflict-banner"><b>วางทับพื้นที่เปิดประตู</b><span>ย้ายเฟอร์นิเจอร์ออกจากโซนสีแดง</span></div>}
       {!project.placements.length && <div className="canvas-empty"><span>＋</span><h3>ห้องพร้อมแล้ว</h3><p>เลือกเฟอร์นิเจอร์จากคลังเพื่อเริ่มจัดวาง</p></div>}
-      <div className="axis-widget"><i className="axis-y" /><i className="axis-x" /><span>Y</span><b>X</b></div>
     </div>
   );
 }

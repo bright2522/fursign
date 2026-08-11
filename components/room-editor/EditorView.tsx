@@ -10,6 +10,7 @@ import { AssistantPanel } from "./AssistantPanel";
 import { RoomCanvas, type CameraState } from "./RoomCanvas";
 
 const categories: Array<[string, string]> = [["all", "ทั้งหมด"], ["sofa", "โซฟา"], ["table", "โต๊ะ"], ["chair", "เก้าอี้"], ["bed", "เตียง"], ["storage", "ตู้"], ["decor", "ตกแต่ง"]];
+const gridSteps = [.25, .5, 1, 0] as const;
 
 export function EditorView() {
   const { project, selectedId, select, warnings, updatePlacements, saveProject, navigate, undo, redo, historyCount, futureCount, setProject, setAssistantOpen } = useFursign();
@@ -18,6 +19,8 @@ export function EditorView() {
   const [search, setSearch] = useState("");
   const [snapRotation, setSnapRotation] = useState(true);
   const [snapWall, setSnapWall] = useState(true);
+  const [gridSize, setGridSize] = useState<(typeof gridSteps)[number]>(.5);
+  const [wallsVisible, setWallsVisible] = useState(true);
   const [mobilePanel, setMobilePanel] = useState<"library" | "properties" | null>(null);
   const selected = project.placements.find((item) => item.id === selectedId) ?? null;
   const selectedAsset = selected ? furnitureAssets.find((item) => item.id === selected.assetId) ?? null : null;
@@ -90,6 +93,8 @@ export function EditorView() {
     else setCamera({ yaw: -8, pitch: 55, zoom: 0.92, panX: 0, panY: 10, mode });
   };
 
+  const cycleGrid = () => setGridSize((current) => gridSteps[(gridSteps.indexOf(current) + 1) % gridSteps.length]);
+
   return (
     <div className="editor-page">
       <header className="editor-topbar">
@@ -109,9 +114,10 @@ export function EditorView() {
         </aside>
 
         <section className="canvas-section">
-          <RoomCanvas camera={camera} setCamera={setCamera} onMove={move} />
+          <RoomCanvas camera={camera} setCamera={setCamera} onMove={move} gridSize={gridSize} wallsVisible={wallsVisible} />
           <div className="camera-tools"><button onClick={() => setCamera({ yaw: -8, pitch: 55, zoom: 0.92, panX: 0, panY: 10, mode: "orbit" })} title="รีเซ็ตกล้อง">⌂</button><span /><button onClick={() => setCamera({ ...camera, zoom: Math.min(1.75, camera.zoom + 0.12) })}>＋</button><button onClick={() => setCamera({ ...camera, zoom: Math.max(0.58, camera.zoom - 0.12) })}>−</button></div>
-          <div className="editor-status"><span><i className="status-ok" /> {project.room.width} × {project.room.length} × {project.room.height} ม.</span><span className={warnings.length ? "status-warning" : ""}>{warnings.length ? `⚠ ${warnings.length} คำเตือน` : "✓ ไม่พบการชน"}</span><span>Snap {snapWall ? "เปิด" : "ปิด"}</span></div>
+          <div className="display-tools"><button className={gridSize ? "active" : ""} onClick={cycleGrid} title="เปลี่ยนระยะ Grid"><b>▦</b><span>Grid</span><small>{gridSize ? `${Math.round(gridSize * 100)} ซม.` : "ปิด"}</small></button><button className={wallsVisible ? "active" : ""} onClick={() => setWallsVisible((value) => !value)} title="เปิดหรือซ่อนกำแพง"><b>▰</b><span>กำแพง</span><small>{wallsVisible ? "เปิด" : "ซ่อน"}</small></button></div>
+          <div className="editor-status"><span><i className="status-ok" /> {project.room.width} × {project.room.length} × {project.room.height} ม.</span><span className={warnings.length ? "status-warning" : ""}>{warnings.length ? `⚠ ${warnings.length} คำเตือน` : "✓ ไม่พบการชน"}</span><span>{gridSize ? `Grid ${Math.round(gridSize * 100)} ซม.` : "Grid ปิด"} · Snap {snapWall ? "เปิด" : "ปิด"}</span></div>
         </section>
 
         <aside className={`properties-panel ${mobilePanel === "properties" ? "mobile-open" : ""}`}>
