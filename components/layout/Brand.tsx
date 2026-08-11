@@ -20,7 +20,7 @@ export function PublicNav() {
       <div className="public-nav-links">
         <button onClick={() => navigate("projects")}>โปรเจกต์ของฉัน</button>
         <button onClick={() => navigate("merchant")}>สำหรับร้านค้า</button>
-        <button className="button button-dark" onClick={() => navigate("setup")}>เริ่มออกแบบ <span>↗</span></button>
+        <button className="button button-dark" onClick={() => navigate("setup")}>Get Started ↗</button>
       </div>
     </nav>
   );
