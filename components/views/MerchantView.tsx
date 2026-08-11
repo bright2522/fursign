@@ -1,0 +1,21 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { Brand } from "@/components/layout/Brand";
+import { createId } from "@/lib/engine.mjs";
+import { useFursign } from "@/features/projects/FursignContext";
+
+export function MerchantView() {
+  const { navigate, notify } = useFursign();
+  const [form, setForm] = useState({ merchant: "", contact: "", name: "", category: "sofa", width: "", depth: "", height: "", price: "", url: "", image: "", stock: "in-stock", tags: "Minimal, Warm" });
+  const set = (key: keyof typeof form, value: string) => setForm({ ...form, [key]: value });
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const entry = { id: createId("merchant-product"), ...form, createdAt: new Date().toISOString() };
+    const stored = JSON.parse(window.localStorage.getItem("fursign.merchant-products.v1") || "[]");
+    window.localStorage.setItem("fursign.merchant-products.v1", JSON.stringify([...stored, entry]));
+    notify("บันทึกสินค้าทดลองแล้ว");
+    setForm({ ...form, name: "", width: "", depth: "", height: "", price: "", url: "", image: "" });
+  };
+  return <div className="merchant-page"><header className="workspace-header"><Brand /><button onClick={() => navigate("landing")}>← กลับหน้าแรก</button></header><div className="merchant-layout"><section className="merchant-intro"><p className="eyebrow light"><span /> สำหรับพันธมิตรร้านค้า</p><h1>ให้ลูกค้าพบสินค้า<br />ที่ใส่ได้จริง</h1><p>เพิ่มข้อมูลขนาดที่ชัดเจน เพื่อให้ Fursign จับคู่สินค้ากับพื้นที่ของลูกค้าได้อย่างโปร่งใส</p><div className="merchant-points"><span><b>01</b>ไม่มีการ Scrape เว็บไซต์</span><span><b>02</b>Sponsored ต้องผ่าน Fit ก่อน</span><span><b>03</b>บันทึกในอุปกรณ์นี้</span></div><div className="csv-box"><span>CSV FEED</span><p>Schema พร้อมสำหรับ: product_id, merchant_id, category, width_m, depth_m, height_m, price, url, stock, style_tags</p><button onClick={() => notify("ตัวอย่าง CSV ระบุอยู่ใน docs/product-data-source.md")}>ดูรูปแบบข้อมูล →</button></div></section><form className="merchant-form" onSubmit={submit}><div className="form-heading"><span>PRODUCT SUBMISSION</span><h2>เพิ่มสินค้าทดลอง</h2><p>ทุกช่องขนาดใช้หน่วยเมตร</p></div><div className="form-grid"><label>ชื่อร้าน<input required value={form.merchant} onChange={(e) => set("merchant", e.target.value)} /></label><label>ข้อมูลติดต่อ<input required value={form.contact} onChange={(e) => set("contact", e.target.value)} /></label><label className="full">ชื่อสินค้า<input required value={form.name} onChange={(e) => set("name", e.target.value)} /></label><label>หมวด<select value={form.category} onChange={(e) => set("category", e.target.value)}><option value="sofa">โซฟา</option><option value="table">โต๊ะ</option><option value="chair">เก้าอี้</option><option value="bed">เตียง</option><option value="storage">ตู้</option><option value="shelf">ชั้นวาง</option></select></label><label>สถานะสินค้า<select value={form.stock} onChange={(e) => set("stock", e.target.value)}><option value="in-stock">มีสินค้า</option><option value="out-of-stock">หมด</option></select></label><label>กว้าง (ม.)<input required type="number" min="0.1" step="0.01" value={form.width} onChange={(e) => set("width", e.target.value)} /></label><label>ลึก (ม.)<input required type="number" min="0.1" step="0.01" value={form.depth} onChange={(e) => set("depth", e.target.value)} /></label><label>สูง (ม.)<input required type="number" min="0.1" step="0.01" value={form.height} onChange={(e) => set("height", e.target.value)} /></label><label>ราคา (บาท)<input required type="number" min="0" value={form.price} onChange={(e) => set("price", e.target.value)} /></label><label className="full">Product URL<input required type="url" value={form.url} onChange={(e) => set("url", e.target.value)} /></label><label className="full">รูปสินค้า URL<input type="url" value={form.image} onChange={(e) => set("image", e.target.value)} placeholder="หรือเว้นว่างเพื่อใช้ Placeholder" /></label><label className="full">Style Tags<input value={form.tags} onChange={(e) => set("tags", e.target.value)} /></label></div><button className="button button-primary button-large form-submit">บันทึกสินค้าทดลอง <span>→</span></button></form></div></div>;
+}

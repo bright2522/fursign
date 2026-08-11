@@ -1,0 +1,12 @@
+import type { FurnitureAsset, FurniturePlacement, Product, ProductRequirement, Project, Recommendation, RoomWarning } from "../types/fursign";
+export function metersToCentimeters(value: number): number;
+export function normalizeRotation(value: number): number;
+export function rotatedFootprint(asset: FurnitureAsset, rotation: number): { width: number; depth: number };
+export function placementBox(placement: FurniturePlacement, asset: FurnitureAsset): { minX: number; maxX: number; minZ: number; maxZ: number };
+export function boxesOverlap(a: { minX: number; maxX: number; minZ: number; maxZ: number }, b: { minX: number; maxX: number; minZ: number; maxZ: number }, padding?: number): boolean;
+export function isOutsideRoom(box: { minX: number; maxX: number; minZ: number; maxZ: number }, room: Project["room"]): boolean;
+export function doorSweepBox(door: Project["room"]["doors"][number], room: Project["room"]): { minX: number; maxX: number; minZ: number; maxZ: number };
+export function calculateWarnings(project: Project, assets: FurnitureAsset[]): RoomWarning[];
+export function generateRequirement(project: Project, placement: FurniturePlacement, asset: FurnitureAsset): ProductRequirement;
+export function recommendProducts(requirement: ProductRequirement, products: Product[], budgetConstraint?: boolean): Recommendation[];
+export function createId(prefix?: string): string;

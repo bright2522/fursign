@@ -1,0 +1,2 @@
+product_id,merchant_id,name,category,width_m,depth_m,height_m,price_thb,style_tags,color,image_url,product_url,stock_status,sponsored,updated_at
+sample-sofa-001,merchant-demo,โซฟาตัวอย่าง,sofa,1.80,0.85,0.82,12900,"Minimal|Warm",Beige,https://example.com/image.jpg,https://example.com/product,in-stock,false,2026-08-01T08:00:00Z
