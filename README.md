@@ -4,7 +4,7 @@ Fursign is a Thai-first browser prototype for planning a room before buying furn
 
 ## Run locally
 
-Requirements: Node.js 22.13 or newer and pnpm 11.
+Requirements: Node.js 24 and pnpm 10.34.5.
 
 ```bash
 pnpm install
